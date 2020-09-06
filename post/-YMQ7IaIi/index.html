@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>SSR 服务伪装成正常网站流量防止被封 | P3TERX</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://p3terx.js.org/favicon.ico?v=1599360277907">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://p3terx.js.org/styles/main.css">
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://p3terx.js.org">
+        <img src="https://p3terx.js.org/images/avatar.png?v=1599360277907" class="site-logo">
+        <h1 class="site-title">P3TERX</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://p3terx.github.io/P3TERX" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://p3terx.github.io/P3TERX/archives" class="site-nav">
+            目录
+          </a>
+        
+      
+        
+          <a href="https://p3terx.github.io/P3TERX/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a> | <a class="rss" href="https://p3terx.js.org/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">SSR 服务伪装成正常网站流量防止被封</h2>
+            <div class="post-date">2017-03-30</div>
+            
+            <div class="post-content">
+              <h2 id="安装-shadowsocksr">安装 ShadowsocksR</h2>
+<pre><code>wget -N --no-check-certificate https://raw.githubusercontent.com/ToyoDAdoubi/doubi/master/ssr.sh &amp;&amp; chmod +x ssr.sh &amp;&amp; bash ssr.sh
+</code></pre>
+<h2 id="安装-caddy">安装 Caddy</h2>
+<pre><code>wget -N --no-check-certificate https://raw.githubusercontent.com/ToyoDAdoubi/doubi/master/caddy_install.sh &amp;&amp; chmod +x caddy_install.sh &amp;&amp; bash caddy_install.sh
+</code></pre>
+<h2 id="配置-caddy">配置 Caddy</h2>
+<p>修改 Caddy 配置文件</p>
+<pre><code>vi /usr/local/caddy/Caddyfile
+</code></pre>
+<p>为了让Caddy自动获取证书，那么<code>80</code>端口就不能被占用，不然就无法启动Caddy服务，所以这里我们设置<code>443</code>端口伪装。HTTPS 的端口填写<code>1443</code>，后面我们会在SSR的配置中设置<code>443</code>转发到<code>1443</code>端口。这样HTTP访问会重定向到<code>443</code>端口，SSR会通过<code>1443</code>端口转发网页内容到<code>443</code>端口，看起来就像是正常的网站。</p>
+<pre><code>https://xxx.xxx:1443 {
+	root /usr/local/caddy/www/ssr
+	tls xxxx@xxx.xx
+	gzip
+}
+http://xxx.xxx:80 {
+	redir https://xxx.xxx:443{url}
+}
+</code></pre>
+<blockquote>
+<p><code>xxxx@xxx.xx</code>改成你的邮箱，同时需要注意的是，申请 SSL证书前，请务必提前解析好域名记录(解析后最好等一会，以全球生效)，否则 Caddy会申请并配置失败！</p>
+</blockquote>
+<h2 id="上传网页站文件">上传网页站文件</h2>
+<ol>
+<li>在<code>/usr/local/caddy/</code>下新建文件夹</li>
+</ol>
+<pre><code>mkdir /usr/local/caddy/www &amp;&amp; /usr/local/caddy/www/ssr
+</code></pre>
+<ol start="2">
+<li>
+<p>Google 搜索 <a href="https://www.google.com/search?q=Website%20template">Website template</a> ，随便找一个英文的网站模版，使用 SFTP 工具上传到这个文件夹中：<code>/usr/local/caddy/www/ssr</code></p>
+</li>
+<li>
+<p>重启 Caddy</p>
+</li>
+</ol>
+<pre><code>service caddy restart
+</code></pre>
+<h2 id="shadowsocksr-端口转发配置">ShadowsocksR 端口转发配置</h2>
+<ol>
+<li>使用一键管理脚本手动修改用户配置，或直接修改<code>user-config.json</code>，找到<code>redirect</code>参数。</li>
+</ol>
+<pre><code>&quot;redirect&quot;: &quot;&quot;,
+</code></pre>
+<ol start="2">
+<li>按照如下示例添加参数。按<code>I键</code>进入编辑模式，然后修改后按<code>Esc键</code> 退出编辑模式，并输入<code>:wq</code>保存并退出。</li>
+</ol>
+<pre><code>&quot;redirect&quot;: [&quot;*:443#127.0.0.1:1443&quot;],
+</code></pre>
+<ol start="3">
+<li>重启 ShadowsocksR</li>
+</ol>
+
+            </div>
+            
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+  </body>
+</html>
